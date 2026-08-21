@@ -131,11 +131,11 @@ header .logo::after{
   transform:skewX(-20deg);
   mix-blend-mode:screen;
   pointer-events:none;
-  animation:logoShine 3.2s ease-in-out infinite;
+  animation:logoShine 4.6s ease-in-out infinite;
 }
 @keyframes logoShine{
-  0%, 30%{ left:-160%; }
-  74%, 100%{ left:160%; }
+  0%, 21%{ left:-160%; }
+  82%, 100%{ left:160%; }
 }
 .header-actions{ display:flex; align-items:center; gap:var(--sp-xs); }
 .cart-badge{
