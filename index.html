@@ -147,21 +147,31 @@
   /* ---------- hero ---------- */
   .hero{
     position:relative; overflow:hidden;
-    padding:96px 28px 88px;
+    padding:130px 28px 108px;
     text-align:center;
+    color:var(--cream-2);
   }
-  .hero-texture{ position:absolute; inset:0; opacity:.16; mix-blend-mode:multiply; pointer-events:none; }
-  .hero-inner{ position:relative; max-width:640px; margin:0 auto; }
+  .hero-media{ position:absolute; inset:0; z-index:0; }
+  .hero-media img{
+    width:100%; height:100%; object-fit:cover; object-position:center 42%;
+  }
+  .hero-media::after{
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(26,20,15,.5) 0%, rgba(26,20,15,.68) 55%, rgba(26,20,15,.86) 100%);
+  }
+  .hero-inner{ position:relative; z-index:1; max-width:640px; margin:0 auto; }
   .hero-kicker{
     font-size:12.5px; letter-spacing:.18em; text-transform:uppercase;
-    color:var(--walnut); font-weight:600; margin-bottom:18px;
+    color:var(--gold); font-weight:600; margin-bottom:18px;
   }
-  .hero h1{ font-size:clamp(38px,6vw,60px); line-height:1.08; }
-  .hero h1 em{ font-style:italic; color:var(--walnut); }
+  .hero h1{ font-size:clamp(38px,6vw,60px); line-height:1.08; color:var(--cream-2); }
+  .hero h1 em{ font-style:italic; color:var(--gold); }
   .hero p{
     margin:22px auto 34px; max-width:460px;
-    font-size:16.5px; line-height:1.65; color:var(--charcoal-60);
+    font-size:16.5px; line-height:1.65; color:rgba(247,242,233,.78);
   }
+  .hero .btn-primary{ background:var(--cream-2); color:var(--charcoal); }
+  .hero .btn-primary:hover{ background:#fff; }
 
   /* ---------- section headings ---------- */
   .section-head{ text-align:center; max-width:520px; margin:0 auto 52px; }
@@ -400,9 +410,9 @@
 
 <main id="top">
   <section class="hero">
-    <svg class="hero-texture" width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true">
-      <rect width="100%" height="100%" filter="url(#woodgrain)"/>
-    </svg>
+    <div class="hero-media" aria-hidden="true">
+      <img src="images/CNC-wood-router-machine-1.jpg" alt="">
+    </div>
     <div class="hero-inner">
       <div class="hero-kicker">Cut in small batches &middot; Finished by hand</div>
       <h1>Small treasures,<br><em>cut with care.</em></h1>
@@ -479,7 +489,7 @@
      Example: "14155552671" for +1 (415) 555-2671
      ============================================================ */
   const WHATSAPP_NUMBER = "10000000000";
-  const CURRENCY = "$";
+  const CURRENCY = "₹";
 
   /* ============================================================
      PRODUCTS — set `image` to a URL/path to use a real photo.
@@ -487,67 +497,103 @@
      ============================================================ */
   const PRODUCTS = [
     {
-      id: "wanderer-tag",
-      name: "The Wanderer Name Tag",
-      tagline: "A name, cut clean and carried everywhere.",
-      price: 18,
-      material: "Solid walnut · Laser-fine CNC engraving · Brass keyring",
-      desc: "Every tag begins as a single offcut of walnut, squared and sanded before the cutting head traces your name in one unbroken line. Small enough for a keyring, sturdy enough to outlast the bag it hangs from.",
-      icon: "ico-tag", accent: "walnut", image: null
+      id: "numeral-wall-clock",
+      name: "Numeral Wall Clock",
+      tagline: "Time, cut down to its simplest shapes.",
+      price: 1450,
+      material: "Walnut veneer on birch ply · Silent-sweep quartz movement · Ready to hang",
+      desc: "Only the numerals survive the cut — 12, 3, 6 and 9 standing alone as solid geometric blocks, with a fine red second hand ticking quietly against the grain. A clock that reads at a glance from across the room.",
+      icon: "ico-tag", accent: "walnut", image: "images/Clock1.jpg"
+    },
+    {
+      id: "lotus-mandala-panel",
+      name: "Lotus Mandala Panel",
+      tagline: "A thousand small cuts, one quiet flower.",
+      price: 2800,
+      material: "Solid maple · Deep relief engraving · Hanging cleat included",
+      desc: "Layer by layer the router works inward — petal, then petal, then the small circle at the center — until a lotus emerges in relief from a single maple panel. Left unstained, so the wood's own warmth carries the piece.",
+      icon: "ico-star", accent: "sage", image: "images/Mandala.jpg"
+    },
+    {
+      id: "botanical-trail-keychain",
+      name: "Botanical Trail Keychain",
+      tagline: "A quiet sprig of the woods, in your pocket.",
+      price: 380,
+      material: "Solid cherry · Fine-line engraving · Steel keyring with wooden key charm",
+      desc: "Ferns and florals trace across a cherrywood tag, finished with a tiny engraved key charm on its own ring — a small, textured companion for a set of house keys.",
+      icon: "ico-fox", accent: "terracotta", image: "images/keychain1.jpg"
+    },
+    {
+      id: "sprig-keychain",
+      name: "Little Sprig Keychain",
+      tagline: "One small stem, hand-picked for you.",
+      price: 220,
+      material: "Solid birch · Fine-line engraving · Split keyring",
+      desc: "Cut from birch and finished with a single engraved sprig — a fern, a wildflower, a stem of leaves, no two quite alike. Pick the one that looks like it was drawn just for you.",
+      icon: "ico-ornament", accent: "gold", image: "images/keychain2.jpg"
+    },
+    {
+      id: "personalized-fob",
+      name: "Personalized Leather & Wood Fob",
+      tagline: "A name, a note, a set of keys that's unmistakably yours.",
+      price: 650,
+      material: "Solid walnut · Full-grain leather loop · Brass rivet and ring",
+      desc: "Engraved with a name, a date, or a short line worth keeping — a note to someone who drives away too often, or simply whose keys these are — each fob is finished with a leather loop and brass hardware built to outlast the keys it carries.",
+      icon: "ico-box", accent: "walnut", image: "images/keychain3.jpg"
     },
     {
       id: "grain-coasters",
-      name: "Grain Coaster Set",
-      tagline: "Four coasters, one shared grain pattern.",
-      price: 34,
-      material: "Set of 4 · Reclaimed oak · Beeswax finish",
-      desc: "Cut sequentially from the same board, this set of four keeps the wood's natural grain running true from piece to piece — a small detail most people never notice, and never forget once they do.",
-      icon: "ico-coasters", accent: "terracotta", image: null
+      name: "Arc Wave Coaster Set",
+      tagline: "Four coasters, cut from the same radiating line.",
+      price: 950,
+      material: "Set of 4 · Engineered wood · Natural finish",
+      desc: "A single arc, repeated outward until it fills the circle — cut clean through so every coaster catches the light a little differently depending on what's underneath it. Understated, geometric, and satisfying to stack.",
+      icon: "ico-coasters", accent: "terracotta", image: "images/GrainCoasterSet1.jpg"
     },
     {
-      id: "constellation-panel",
-      name: "Constellation Wall Panel",
-      tagline: "The sky, the night you'll never forget.",
-      price: 86,
-      material: "Birch plywood · Hand-rubbed finish · Hanging hardware included",
-      desc: "Give us a date and a place, and we'll cut the exact arrangement of stars overhead that night — a quiet, permanent record of a wedding, a birth, or a beginning.",
-      icon: "ico-star", accent: "sage", image: null
+      id: "tree-of-life-coasters",
+      name: "Tree of Life Coaster Set",
+      tagline: "Five trees, no two alike.",
+      price: 1150,
+      material: "Set of 5 · Solid oak · Fine detail cutting",
+      desc: "Each coaster in this set carries its own version of the same tree — bare branches, full leaves, a scatter of hearts — cut deep enough to hold real texture under your fingers. Sold as a set so the whole grove stays together.",
+      icon: "ico-coasters", accent: "sage", image: "images/GrainCoasterSet2.jpg"
     },
     {
-      id: "fox-keychain",
-      name: "Little Fox Keychain",
-      tagline: "A small companion for your keys.",
-      price: 14,
-      material: "Solid walnut · Steel split ring",
-      desc: "Simple enough to hold in one hand, this fox is cut in a single pass and sanded to a soft, pocket-friendly finish. A quiet favorite among the smallest gifts we make.",
-      icon: "ico-fox", accent: "gold", image: null
+      id: "slotted-phone-stand",
+      name: "The Minimalist Phone Stand",
+      tagline: "One slot, one phone, nothing extra.",
+      price: 450,
+      material: "Solid wood · Walnut, oak or ash · Non-slip base",
+      desc: "A single block of wood with a single routed slot, angled just enough to keep a phone upright through a video call or a recipe. No charging cutout to catch dust, no finish to wear through — just wood doing one job well.",
+      icon: "ico-organizer", accent: "walnut", image: "images/MobileStand1.jpg"
+    },
+    {
+      id: "chunky-phone-stand",
+      name: "Chunky Oak Phone Stand",
+      tagline: "A small, solid anchor for your desk.",
+      price: 520,
+      material: "Solid oak · Hand-sanded edges · Weighted base",
+      desc: "Heavier and more compact than our slotted stand, this one is cut from a solid block of oak with softly rounded corners — steady enough that it won't tip when you tap the screen.",
+      icon: "ico-organizer", accent: "gold", image: "images/MobileStand3.jpg"
     },
     {
       id: "study-organizer",
       name: "The Study Organizer",
       tagline: "A tidy desk starts with good joinery.",
-      price: 58,
+      price: 1650,
       material: "White oak · Three compartments · Felt-lined base",
       desc: "Pens, cards, the day's loose ends — the Study Organizer gives each its own compartment, cut and dry-fit by hand so every joint sits flush without a drop of visible glue.",
       icon: "ico-organizer", accent: "walnut", image: null
     },
     {
-      id: "first-home-ornament",
-      name: "First Home Ornament",
-      tagline: "Mark the year you got the keys.",
-      price: 16,
-      material: "Solid maple · Engraved date · Linen cord",
-      desc: "A small ornament for a big milestone — your address and the year, engraved into a coin of maple and finished with a simple linen loop for the tree.",
-      icon: "ico-ornament", accent: "terracotta", image: null
-    },
-    {
-      id: "keepsake-box",
-      name: "Recipe Keepsake Box",
-      tagline: "For the recipes worth keeping.",
-      price: 64,
-      material: "Solid walnut · Brass hinge · Divider included",
-      desc: "Built the way a good box should be — snug lid, brass hinge, room enough for a few years of recipe cards. We leave the inside unfinished so it takes on the scent of the kitchen it lives in.",
-      icon: "ico-box", accent: "sage", image: null
+      id: "wave-relief-panel",
+      name: "Wave Relief Wall Panel",
+      tagline: "Wood, carved until it moves.",
+      price: 4500,
+      material: "Solid maple · Deep 3D relief routing · Cleated for flush mounting",
+      desc: "The router passes over this panel dozens of times, each pass a little deeper, until a flat board gives way to a field of overlapping ribbons that shift with the light. Large enough to anchor a wall on its own.",
+      icon: "ico-star", accent: "walnut", image: "images/Router1.jpg"
     }
   ];
 
@@ -561,7 +607,7 @@
   /* ---------------- helpers ---------------- */
   const $ = (sel) => document.querySelector(sel);
   const byId = (id) => PRODUCTS.find(p => p.id === id);
-  const fmt = (n) => CURRENCY + n.toFixed(n % 1 ? 2 : 0);
+  const fmt = (n) => CURRENCY + n.toLocaleString("en-IN");
 
   function productImageHTML(product, size){
     if(product.image){
