@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timber &amp; Grain — Handcrafted CNC Wood Gifts</title>
+
+<!--
+  ============================================================
+  TIMBER & GRAIN — single-file storefront
+  ============================================================
+
+  QUICK CONFIG — everything you need to launch this for real:
+
+  1) WHATSAPP NUMBER
+     Search for "WHATSAPP_NUMBER" near the top of the <script>
+     block at the bottom of this file and replace it with your
+     number in international format, digits only, no + or spaces
+     (e.g. "14155552671" for +1 415 555 2671).
+
+  2) PRODUCT IMAGES
+     Search for "PRODUCTS" in the <script>. Each product has an
+     `image` field, currently left as `null`. Until you set it,
+     the storefront renders an elegant generated wood-grain
+     placeholder with a small line icon — nothing looks broken.
+     To use a real photo, just set image: "images/coasters.jpg"
+     (a local path or URL). No other code changes are needed.
+
+  3) COLOR PALETTE
+     Search for "COLOR VARIABLES" in the <style> block below.
+     Every color in the page is driven from that one place.
+  ============================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================================================
+     COLOR VARIABLES — change the palette from right here
+     ============================================================ */
+  :root{
+    --cream:        #F7F2E9;   /* page background */
+    --cream-2:      #FDFAF5;   /* card / surface background */
+    --charcoal:     #2B2621;   /* primary text */
+    --charcoal-60:  rgba(43,38,33,.6);
+    --charcoal-40:  rgba(43,38,33,.4);
+    --walnut:       #8B5E3C;   /* deep wood accent */
+    --terracotta:   #C17A56;   /* warm accent */
+    --sage:         #8B9A7E;   /* muted highlight */
+    --gold:         #C6A15B;   /* soft gold highlight */
+    --line:         rgba(43,38,33,.10);
+    --line-strong:  rgba(43,38,33,.18);
+
+    --radius-s: 6px;
+    --radius-m: 14px;
+    --radius-l: 22px;
+    --shadow-s: 0 1px 2px rgba(43,38,33,.05), 0 2px 8px rgba(43,38,33,.04);
+    --shadow-m: 0 6px 20px rgba(43,38,33,.08), 0 2px 6px rgba(43,38,33,.05);
+    --shadow-l: 0 20px 60px rgba(43,38,33,.16), 0 4px 16px rgba(43,38,33,.08);
+    --ease: cubic-bezier(.22,.61,.36,1);
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--charcoal);
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    opacity:0;
+    transition:opacity .6s var(--ease);
+  }
+  body.loaded{ opacity:1; }
+  body.lock{ overflow:hidden; }
+
+  h1,h2,h3,.serif{
+    font-family:'Cormorant Garamond', Georgia, serif;
+    font-weight:600;
+    letter-spacing:.01em;
+    color:var(--charcoal);
+    margin:0;
+  }
+  p{ margin:0; }
+  button{ font-family:inherit; }
+  img{ max-width:100%; display:block; }
+
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 28px; }
+
+  /* ---------- buttons ---------- */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    border:1px solid transparent; cursor:pointer;
+    font-size:14.5px; font-weight:500; letter-spacing:.02em;
+    padding:13px 26px; border-radius:999px;
+    transition:transform .25s var(--ease), box-shadow .25s var(--ease), background .25s var(--ease), border-color .25s var(--ease);
+    white-space:nowrap;
+    text-decoration:none;
+  }
+  .btn-primary{ background:var(--charcoal); color:var(--cream-2); }
+  .btn-primary:hover{ transform:translateY(-1px); box-shadow:var(--shadow-m); }
+  .btn-outline{ background:transparent; color:var(--charcoal); border-color:var(--line-strong); }
+  .btn-outline:hover{ border-color:var(--charcoal); }
+  .btn-whatsapp{ background:var(--walnut); color:var(--cream-2); width:100%; padding:15px 20px; font-size:15px; }
+  .btn-whatsapp:hover{ background:#795032; box-shadow:var(--shadow-m); transform:translateY(-1px); }
+  .btn-whatsapp:disabled{ background:var(--line-strong); color:var(--charcoal-40); cursor:not-allowed; transform:none; box-shadow:none; }
+  .icon-btn{
+    background:transparent; border:none; cursor:pointer; position:relative;
+    width:42px; height:42px; display:flex; align-items:center; justify-content:center;
+    border-radius:50%; color:var(--charcoal); transition:background .2s var(--ease);
+  }
+  .icon-btn:hover{ background:rgba(43,38,33,.06); }
+  .icon-btn svg{ width:21px; height:21px; }
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky; top:0; z-index:40;
+    background:rgba(247,242,233,.88);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .header-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 28px;
+  }
+  .logo{
+    font-family:'Cormorant Garamond', serif; font-weight:600;
+    font-size:24px; letter-spacing:.02em; color:var(--charcoal);
+    text-decoration:none;
+  }
+  .logo span{ color:var(--walnut); }
+  .header-actions{ display:flex; align-items:center; gap:6px; }
+  .cart-badge{
+    position:absolute; top:2px; right:2px;
+    min-width:17px; height:17px; padding:0 4px;
+    border-radius:999px; background:var(--terracotta); color:#fff;
+    font-size:10px; font-weight:600; display:flex; align-items:center; justify-content:center;
+    transform:scale(0); transition:transform .3s var(--ease);
+  }
+  .cart-badge.show{ transform:scale(1); }
+  .cart-badge.bump{ animation:bump .35s var(--ease); }
+  @keyframes bump{ 0%{transform:scale(1)} 40%{transform:scale(1.35)} 100%{transform:scale(1)} }
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative; overflow:hidden;
+    padding:96px 28px 88px;
+    text-align:center;
+  }
+  .hero-texture{ position:absolute; inset:0; opacity:.16; mix-blend-mode:multiply; pointer-events:none; }
+  .hero-inner{ position:relative; max-width:640px; margin:0 auto; }
+  .hero-kicker{
+    font-size:12.5px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--walnut); font-weight:600; margin-bottom:18px;
+  }
+  .hero h1{ font-size:clamp(38px,6vw,60px); line-height:1.08; }
+  .hero h1 em{ font-style:italic; color:var(--walnut); }
+  .hero p{
+    margin:22px auto 34px; max-width:460px;
+    font-size:16.5px; line-height:1.65; color:var(--charcoal-60);
+  }
+
+  /* ---------- section headings ---------- */
+  .section-head{ text-align:center; max-width:520px; margin:0 auto 52px; }
+  .section-head .kicker{
+    font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--sage); font-weight:600; margin-bottom:12px;
+  }
+  .section-head h2{ font-size:clamp(30px,4vw,40px); margin-bottom:14px; }
+  .section-head p{ color:var(--charcoal-60); font-size:15.5px; line-height:1.6; }
+
+  section.shop{ padding:100px 0 110px; }
+
+  /* ---------- product grid ---------- */
+  .grid{
+    display:grid; gap:34px;
+    grid-template-columns:repeat(auto-fill, minmax(260px,1fr));
+  }
+  .card{
+    background:var(--cream-2); border-radius:var(--radius-l);
+    border:1px solid var(--line); overflow:hidden; cursor:pointer;
+    box-shadow:var(--shadow-s);
+    transition:transform .4s var(--ease), box-shadow .4s var(--ease), border-color .4s var(--ease);
+    opacity:0; transform:translateY(18px);
+  }
+  .card.reveal{ animation:cardIn .7s var(--ease) forwards; }
+  @keyframes cardIn{ to{ opacity:1; transform:translateY(0);} }
+  .card:hover{ transform:translateY(-6px); box-shadow:var(--shadow-m); border-color:var(--line-strong); }
+
+  .product-image{
+    position:relative; aspect-ratio:4/3.1; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--tint, var(--walnut));
+  }
+  .product-image::before{
+    content:""; position:absolute; inset:0;
+    filter:url(#woodgrain); opacity:.4; mix-blend-mode:multiply;
+  }
+  .product-image::after{
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,.18) 100%);
+  }
+  .product-image img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .product-image .ico{
+    position:relative; z-index:1; width:34%; color:var(--cream-2); opacity:.92;
+    transition:transform .5s var(--ease);
+  }
+  .card:hover .product-image .ico{ transform:scale(1.06) rotate(-2deg); }
+
+  .card-body{ padding:22px 22px 24px; }
+  .card-top{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+  .card-name{ font-size:19px; line-height:1.3; }
+  .card-price{ font-family:'Inter'; font-weight:600; font-size:14.5px; color:var(--walnut); white-space:nowrap; }
+  .card-tagline{ margin-top:8px; font-size:13.5px; line-height:1.55; color:var(--charcoal-60); }
+  .card-cta{
+    margin-top:16px; display:flex; align-items:center; gap:6px;
+    font-size:12.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--charcoal); opacity:.7; transition:gap .3s var(--ease), opacity .3s var(--ease);
+  }
+  .card:hover .card-cta{ gap:10px; opacity:1; }
+  .card-cta svg{ width:13px; height:13px; }
+
+  /* ---------- modal ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(30,25,20,.45);
+    opacity:0; pointer-events:none; transition:opacity .35s var(--ease);
+    z-index:60;
+  }
+  .overlay.open{ opacity:1; pointer-events:auto; }
+
+  .modal{
+    position:fixed; z-index:61; left:50%; top:50%;
+    transform:translate(-50%,-46%) scale(.97); opacity:0; pointer-events:none;
+    width:min(880px, 92vw); max-height:88vh; overflow:auto;
+    background:var(--cream-2); border-radius:var(--radius-l); box-shadow:var(--shadow-l);
+    transition:opacity .35s var(--ease), transform .35s var(--ease);
+    display:grid; grid-template-columns:1fr 1fr;
+  }
+  .modal.open{ opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
+  .modal-image{ position:relative; }
+  .modal-image .product-image{ height:100%; aspect-ratio:auto; border-radius:0; }
+  .modal-close{
+    position:absolute; top:16px; right:16px; z-index:2;
+    width:38px; height:38px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(247,242,233,.9); color:var(--charcoal);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .2s var(--ease), background .2s var(--ease);
+  }
+  .modal-close:hover{ transform:rotate(90deg); background:#fff; }
+  .modal-close svg{ width:16px; height:16px; }
+
+  .modal-info{ padding:44px 40px; display:flex; flex-direction:column; }
+  .modal-name{ font-size:30px; line-height:1.15; }
+  .modal-price{ margin-top:10px; font-size:17px; font-weight:600; color:var(--walnut); }
+  .modal-material{
+    margin-top:16px; font-size:12px; letter-spacing:.03em;
+    color:var(--sage); font-weight:600;
+  }
+  .modal-desc{ margin-top:18px; font-size:14.5px; line-height:1.75; color:var(--charcoal-60); }
+
+  .qty-row{ margin-top:28px; display:flex; align-items:center; gap:16px; }
+  .qty-label{ font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--charcoal-60); font-weight:600; }
+  .qty-control{ display:flex; align-items:center; border:1px solid var(--line-strong); border-radius:999px; }
+  .qty-control button{
+    width:36px; height:36px; border:none; background:transparent; cursor:pointer;
+    font-size:16px; color:var(--charcoal); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .2s var(--ease);
+  }
+  .qty-control button:hover{ background:rgba(43,38,33,.06); }
+  .qty-control span{ width:30px; text-align:center; font-weight:600; font-size:14.5px; }
+
+  .modal-add{ margin-top:auto; padding-top:32px; }
+
+  /* ---------- cart drawer ---------- */
+  .drawer{
+    position:fixed; z-index:62; top:0; right:0; height:100%;
+    width:min(420px, 100vw); background:var(--cream-2);
+    box-shadow:var(--shadow-l);
+    transform:translateX(100%); transition:transform .4s var(--ease);
+    display:flex; flex-direction:column;
+  }
+  .drawer.open{ transform:translateX(0); }
+  .drawer-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:24px 26px; border-bottom:1px solid var(--line);
+  }
+  .drawer-head h3{ font-size:22px; }
+  .drawer-items{ flex:1; overflow-y:auto; padding:10px 26px; }
+  .empty-cart{
+    height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:40px 20px; color:var(--charcoal-60); gap:14px;
+  }
+  .empty-cart svg{ width:38px; height:38px; color:var(--line-strong); }
+  .empty-cart p{ font-size:14px; line-height:1.6; max-width:220px; }
+
+  .cart-item{
+    display:flex; gap:14px; padding:18px 0; border-bottom:1px solid var(--line);
+  }
+  .cart-item .product-image{ width:76px; height:76px; aspect-ratio:auto; border-radius:var(--radius-s); flex:none; }
+  .cart-item .product-image .ico{ width:44%; }
+  .ci-info{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .ci-name{ font-size:14.5px; font-weight:600; line-height:1.3; }
+  .ci-price{ font-size:12.5px; color:var(--charcoal-60); margin-top:4px; }
+  .ci-row{ margin-top:auto; display:flex; align-items:center; justify-content:space-between; }
+  .ci-qty{ display:flex; align-items:center; border:1px solid var(--line-strong); border-radius:999px; }
+  .ci-qty button{ width:26px; height:26px; border:none; background:transparent; cursor:pointer; font-size:13px; border-radius:50%; }
+  .ci-qty button:hover{ background:rgba(43,38,33,.06); }
+  .ci-qty span{ width:20px; text-align:center; font-size:12.5px; font-weight:600; }
+  .ci-remove{ background:none; border:none; cursor:pointer; color:var(--charcoal-40); font-size:12px; text-decoration:underline; padding:0; }
+  .ci-remove:hover{ color:var(--terracotta); }
+
+  .drawer-foot{ padding:22px 26px 26px; border-top:1px solid var(--line); }
+  .subtotal-row{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px; }
+  .subtotal-row span:first-child{ font-size:13px; color:var(--charcoal-60); }
+  .subtotal-row span:last-child{ font-size:20px; font-weight:600; font-family:'Cormorant Garamond',serif; }
+  .drawer-note{ margin-top:12px; font-size:11.5px; color:var(--charcoal-40); text-align:center; line-height:1.5; }
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed; left:50%; bottom:28px; z-index:70;
+    transform:translate(-50%, 20px); opacity:0; pointer-events:none;
+    background:var(--charcoal); color:var(--cream-2);
+    padding:13px 22px; border-radius:999px; font-size:13.5px; font-weight:500;
+    display:flex; align-items:center; gap:10px;
+    box-shadow:var(--shadow-m);
+    transition:transform .35s var(--ease), opacity .35s var(--ease);
+  }
+  .toast.show{ transform:translate(-50%, 0); opacity:1; }
+  .toast svg{ width:15px; height:15px; color:var(--sage); }
+
+  /* ---------- footer ---------- */
+  footer{
+    border-top:1px solid var(--line); padding:56px 28px 40px; text-align:center;
+  }
+  footer .logo{ font-size:22px; }
+  footer .tagline{ margin-top:10px; font-size:13.5px; color:var(--charcoal-60); }
+  footer .contact{ margin-top:22px; font-size:12px; color:var(--charcoal-40); }
+  footer .contact a{ color:var(--walnut); text-decoration:none; }
+  footer .contact a:hover{ text-decoration:underline; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:760px){
+    .hero{ padding:76px 22px 64px; }
+    section.shop{ padding:70px 0 80px; }
+    .modal{ grid-template-columns:1fr; width:94vw; max-height:92vh; }
+    .modal-image .product-image{ aspect-ratio:16/10; }
+    .modal-info{ padding:30px 24px 34px; }
+    .drawer{ width:100vw; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hidden SVG defs: wood-grain filter + reusable product icons -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="woodgrain" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.4" numOctaves="4" seed="7" result="noise"/>
+      <feColorMatrix in="noise" type="matrix"
+        values="0 0 0 0 0.16
+                0 0 0 0 0.12
+                0 0 0 0 0.08
+                0 0 0 0.55 0"/>
+    </filter>
+
+    <symbol id="ico-tag" viewBox="0 0 48 48"><path d="M20 8h14a2 2 0 0 1 2 2v14L22 38 6 22 20 8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="30" cy="16" r="2" fill="currentColor"/></symbol>
+    <symbol id="ico-coasters" viewBox="0 0 48 48"><circle cx="18" cy="24" r="12" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="30" cy="24" r="12" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="ico-star" viewBox="0 0 48 48"><path d="M12 14 L24 10 L34 20 L20 30 L32 36" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="12" cy="14" r="1.6" fill="currentColor"/><circle cx="24" cy="10" r="1.6" fill="currentColor"/><circle cx="34" cy="20" r="1.6" fill="currentColor"/><circle cx="20" cy="30" r="1.6" fill="currentColor"/><circle cx="32" cy="36" r="1.6" fill="currentColor"/></symbol>
+    <symbol id="ico-fox" viewBox="0 0 48 48"><path d="M24 10 L34 22 L30 36 H18 L14 22 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M18 18 L14 10 L22 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M30 18 L34 10 L26 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <symbol id="ico-organizer" viewBox="0 0 48 48"><rect x="8" y="10" width="32" height="28" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="18.6" y1="10" x2="18.6" y2="38" stroke="currentColor" stroke-width="1.6"/><line x1="29.3" y1="10" x2="29.3" y2="38" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="ico-ornament" viewBox="0 0 48 48"><circle cx="24" cy="28" r="12" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M24 16 V10" stroke="currentColor" stroke-width="1.6"/><rect x="20" y="6" width="8" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="ico-box" viewBox="0 0 48 48"><rect x="8" y="18" width="32" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 18 L14 10 H34 L40 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+
+    <symbol id="ico-cart" viewBox="0 0 24 24"><path d="M3 4h2l1.6 10.2A2 2 0 0 0 8.6 16H18a2 2 0 0 0 1.96-1.6L21.5 7H6.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.4" fill="currentColor"/><circle cx="17.5" cy="20" r="1.4" fill="currentColor"/></symbol>
+    <symbol id="ico-close" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="ico-arrow" viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ico-check" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ico-empty" viewBox="0 0 24 24"><path d="M3 4h2l1.6 10.2A2 2 0 0 0 8.6 16H18a2 2 0 0 0 1.96-1.6L21.5 7H6.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<header>
+  <div class="header-inner">
+    <a href="#top" class="logo">Timber &amp; <span>Grain</span></a>
+    <div class="header-actions">
+      <button class="icon-btn" id="cartBtn" aria-label="Open cart">
+        <svg><use href="#ico-cart"/></svg>
+        <span class="cart-badge" id="cartBadge">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <svg class="hero-texture" width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true">
+      <rect width="100%" height="100%" filter="url(#woodgrain)"/>
+    </svg>
+    <div class="hero-inner">
+      <div class="hero-kicker">Cut in small batches &middot; Finished by hand</div>
+      <h1>Small treasures,<br><em>cut with care.</em></h1>
+      <p>Personalized wooden keepsakes, precision CNC-cut and finished by hand in a one-room studio. Nothing mass-produced — just good wood and a little patience.</p>
+      <a href="#shop" class="btn btn-primary">Browse the Collection</a>
+    </div>
+  </section>
+
+  <section class="shop" id="shop">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">The Collection</div>
+        <h2>Made to be kept</h2>
+        <p>Each piece starts as a single board, gets its turn under the cutting head, and leaves the studio sanded, oiled, and ready for a name.</p>
+      </div>
+      <div class="grid" id="productGrid"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="logo">Timber &amp; <span style="color:var(--walnut)">Grain</span></div>
+  <p class="tagline">Crafted in small batches. Built to last generations.</p>
+  <p class="contact">Questions about a custom order? Reach us anytime on <a href="#" id="footerWhatsapp">WhatsApp</a>.</p>
+</footer>
+
+<!-- Product detail modal -->
+<div class="overlay" id="overlay"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <button class="modal-close" id="modalClose" aria-label="Close"><svg><use href="#ico-close"/></svg></button>
+  <div class="modal-image"><div class="product-image" id="modalImage"></div></div>
+  <div class="modal-info">
+    <h3 class="modal-name" id="modalName"></h3>
+    <div class="modal-price" id="modalPrice"></div>
+    <div class="modal-material" id="modalMaterial"></div>
+    <p class="modal-desc" id="modalDesc"></p>
+    <div class="qty-row">
+      <span class="qty-label">Quantity</span>
+      <div class="qty-control">
+        <button id="qtyMinus" aria-label="Decrease quantity">&minus;</button>
+        <span id="qtyValue">1</span>
+        <button id="qtyPlus" aria-label="Increase quantity">&plus;</button>
+      </div>
+    </div>
+    <div class="modal-add">
+      <button class="btn btn-primary" id="addToCartBtn" style="width:100%">Add to Cart</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cart drawer -->
+<div class="drawer" id="drawer" role="dialog" aria-label="Shopping cart">
+  <div class="drawer-head">
+    <h3>Your Cart</h3>
+    <button class="icon-btn" id="drawerClose" aria-label="Close cart"><svg><use href="#ico-close"/></svg></button>
+  </div>
+  <div class="drawer-items" id="drawerItems"></div>
+  <div class="drawer-foot" id="drawerFoot">
+    <div class="subtotal-row"><span>Subtotal</span><span id="subtotalValue">$0</span></div>
+    <button class="btn btn-whatsapp" id="checkoutBtn">Buy via WhatsApp</button>
+    <p class="drawer-note">You'll review everything in WhatsApp before it's final.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"><svg><use href="#ico-check"/></svg><span id="toastText">Added to cart</span></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     CONFIG — change your WhatsApp number here.
+     Digits only, international format, no + or spaces.
+     Example: "14155552671" for +1 (415) 555-2671
+     ============================================================ */
+  const WHATSAPP_NUMBER = "10000000000";
+  const CURRENCY = "$";
+
+  /* ============================================================
+     PRODUCTS — set `image` to a URL/path to use a real photo.
+     Leaving it null renders the generated wood-grain placeholder.
+     ============================================================ */
+  const PRODUCTS = [
+    {
+      id: "wanderer-tag",
+      name: "The Wanderer Name Tag",
+      tagline: "A name, cut clean and carried everywhere.",
+      price: 18,
+      material: "Solid walnut · Laser-fine CNC engraving · Brass keyring",
+      desc: "Every tag begins as a single offcut of walnut, squared and sanded before the cutting head traces your name in one unbroken line. Small enough for a keyring, sturdy enough to outlast the bag it hangs from.",
+      icon: "ico-tag", accent: "walnut", image: null
+    },
+    {
+      id: "grain-coasters",
+      name: "Grain Coaster Set",
+      tagline: "Four coasters, one shared grain pattern.",
+      price: 34,
+      material: "Set of 4 · Reclaimed oak · Beeswax finish",
+      desc: "Cut sequentially from the same board, this set of four keeps the wood's natural grain running true from piece to piece — a small detail most people never notice, and never forget once they do.",
+      icon: "ico-coasters", accent: "terracotta", image: null
+    },
+    {
+      id: "constellation-panel",
+      name: "Constellation Wall Panel",
+      tagline: "The sky, the night you'll never forget.",
+      price: 86,
+      material: "Birch plywood · Hand-rubbed finish · Hanging hardware included",
+      desc: "Give us a date and a place, and we'll cut the exact arrangement of stars overhead that night — a quiet, permanent record of a wedding, a birth, or a beginning.",
+      icon: "ico-star", accent: "sage", image: null
+    },
+    {
+      id: "fox-keychain",
+      name: "Little Fox Keychain",
+      tagline: "A small companion for your keys.",
+      price: 14,
+      material: "Solid walnut · Steel split ring",
+      desc: "Simple enough to hold in one hand, this fox is cut in a single pass and sanded to a soft, pocket-friendly finish. A quiet favorite among the smallest gifts we make.",
+      icon: "ico-fox", accent: "gold", image: null
+    },
+    {
+      id: "study-organizer",
+      name: "The Study Organizer",
+      tagline: "A tidy desk starts with good joinery.",
+      price: 58,
+      material: "White oak · Three compartments · Felt-lined base",
+      desc: "Pens, cards, the day's loose ends — the Study Organizer gives each its own compartment, cut and dry-fit by hand so every joint sits flush without a drop of visible glue.",
+      icon: "ico-organizer", accent: "walnut", image: null
+    },
+    {
+      id: "first-home-ornament",
+      name: "First Home Ornament",
+      tagline: "Mark the year you got the keys.",
+      price: 16,
+      material: "Solid maple · Engraved date · Linen cord",
+      desc: "A small ornament for a big milestone — your address and the year, engraved into a coin of maple and finished with a simple linen loop for the tree.",
+      icon: "ico-ornament", accent: "terracotta", image: null
+    },
+    {
+      id: "keepsake-box",
+      name: "Recipe Keepsake Box",
+      tagline: "For the recipes worth keeping.",
+      price: 64,
+      material: "Solid walnut · Brass hinge · Divider included",
+      desc: "Built the way a good box should be — snug lid, brass hinge, room enough for a few years of recipe cards. We leave the inside unfinished so it takes on the scent of the kitchen it lives in.",
+      icon: "ico-box", accent: "sage", image: null
+    }
+  ];
+
+  const ACCENTS = { walnut:"var(--walnut)", terracotta:"var(--terracotta)", sage:"var(--sage)", gold:"var(--gold)" };
+
+  /* ---------------- state ---------------- */
+  let cart = [];        // [{id, qty}]
+  let activeProduct = null;
+  let modalQty = 1;
+
+  /* ---------------- helpers ---------------- */
+  const $ = (sel) => document.querySelector(sel);
+  const byId = (id) => PRODUCTS.find(p => p.id === id);
+  const fmt = (n) => CURRENCY + n.toFixed(n % 1 ? 2 : 0);
+
+  function productImageHTML(product, size){
+    if(product.image){
+      return `<img src="${product.image}" alt="${product.name}" loading="lazy">`;
+    }
+    return `<svg class="ico"><use href="#${product.icon}"/></svg>`;
+  }
+
+  function renderImageEl(container, product){
+    container.style.setProperty("--tint", ACCENTS[product.accent] || ACCENTS.walnut);
+    container.innerHTML = productImageHTML(product);
+  }
+
+  /* ---------------- render: product grid ---------------- */
+  function renderProducts(){
+    const grid = $("#productGrid");
+    grid.innerHTML = PRODUCTS.map(p => `
+      <article class="card" data-id="${p.id}" tabindex="0" role="button" aria-label="View ${p.name}">
+        <div class="product-image" data-img></div>
+        <div class="card-body">
+          <div class="card-top">
+            <h3 class="card-name">${p.name}</h3>
+            <span class="card-price">${fmt(p.price)}</span>
+          </div>
+          <p class="card-tagline">${p.tagline}</p>
+          <div class="card-cta">View details <svg><use href="#ico-arrow"/></svg></div>
+        </div>
+      </article>
+    `).join("");
+
+    grid.querySelectorAll(".card").forEach(card => {
+      const product = byId(card.dataset.id);
+      renderImageEl(card.querySelector("[data-img]"), product);
+      card.addEventListener("click", () => openModal(product.id));
+      card.addEventListener("keydown", (e) => { if(e.key === "Enter") openModal(product.id); });
+    });
+
+    revealOnScroll();
+  }
+
+  function revealOnScroll(){
+    const cards = document.querySelectorAll(".card");
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if(entry.isIntersecting){
+          entry.target.style.animationDelay = (i % 4) * 70 + "ms";
+          entry.target.classList.add("reveal");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    cards.forEach(c => io.observe(c));
+  }
+
+  /* ---------------- modal ---------------- */
+  function openModal(id){
+    activeProduct = byId(id);
+    modalQty = 1;
+    $("#qtyValue").textContent = modalQty;
+    $("#modalName").textContent = activeProduct.name;
+    $("#modalPrice").textContent = fmt(activeProduct.price);
+    $("#modalMaterial").textContent = activeProduct.material;
+    $("#modalDesc").textContent = activeProduct.desc;
+    renderImageEl($("#modalImage"), activeProduct);
+
+    $("#overlay").classList.add("open");
+    $("#modal").classList.add("open");
+    document.body.classList.add("lock");
+  }
+
+  function closeModal(){
+    $("#overlay").classList.remove("open");
+    $("#modal").classList.remove("open");
+    if(!$("#drawer").classList.contains("open")) document.body.classList.remove("lock");
+  }
+
+  $("#modalClose").addEventListener("click", closeModal);
+  $("#overlay").addEventListener("click", () => { closeModal(); closeCart(); });
+  $("#qtyMinus").addEventListener("click", () => { modalQty = Math.max(1, modalQty - 1); $("#qtyValue").textContent = modalQty; });
+  $("#qtyPlus").addEventListener("click", () => { modalQty = Math.min(20, modalQty + 1); $("#qtyValue").textContent = modalQty; });
+
+  $("#addToCartBtn").addEventListener("click", () => {
+    if(!activeProduct) return;
+    addToCart(activeProduct.id, modalQty);
+    closeModal();
+    showToast(`Added ${activeProduct.name} to your cart`);
+  });
+
+  /* ---------------- cart logic ---------------- */
+  function addToCart(id, qty){
+    const existing = cart.find(i => i.id === id);
+    if(existing){ existing.qty += qty; } else { cart.push({ id, qty }); }
+    renderCart();
+    bumpBadge();
+  }
+
+  function updateQty(id, delta){
+    const item = cart.find(i => i.id === id);
+    if(!item) return;
+    item.qty += delta;
+    if(item.qty <= 0) cart = cart.filter(i => i.id !== id);
+    renderCart();
+  }
+
+  function removeItem(id){
+    cart = cart.filter(i => i.id !== id);
+    renderCart();
+  }
+
+  function cartTotal(){
+    return cart.reduce((sum, i) => sum + byId(i.id).price * i.qty, 0);
+  }
+
+  function cartCount(){
+    return cart.reduce((sum, i) => sum + i.qty, 0);
+  }
+
+  function bumpBadge(){
+    const badge = $("#cartBadge");
+    badge.classList.add("bump");
+    setTimeout(() => badge.classList.remove("bump"), 350);
+  }
+
+  function renderCart(){
+    const count = cartCount();
+    const badge = $("#cartBadge");
+    badge.textContent = count;
+    badge.classList.toggle("show", count > 0);
+
+    const itemsEl = $("#drawerItems");
+    const footEl = $("#drawerFoot");
+
+    if(cart.length === 0){
+      itemsEl.innerHTML = `
+        <div class="empty-cart">
+          <svg><use href="#ico-empty"/></svg>
+          <p>Your cart is quiet for now. Add something worth keeping.</p>
+        </div>`;
+      footEl.style.display = "none";
+      return;
+    }
+
+    footEl.style.display = "block";
+    itemsEl.innerHTML = cart.map(item => {
+      const p = byId(item.id);
+      return `
+        <div class="cart-item" data-id="${p.id}">
+          <div class="product-image" data-img></div>
+          <div class="ci-info">
+            <div class="ci-name">${p.name}</div>
+            <div class="ci-price">${fmt(p.price)} each</div>
+            <div class="ci-row">
+              <div class="ci-qty">
+                <button data-action="minus" aria-label="Decrease">&minus;</button>
+                <span>${item.qty}</span>
+                <button data-action="plus" aria-label="Increase">&plus;</button>
+              </div>
+              <button class="ci-remove" data-action="remove">Remove</button>
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+
+    itemsEl.querySelectorAll(".cart-item").forEach(row => {
+      const id = row.dataset.id;
+      renderImageEl(row.querySelector("[data-img]"), byId(id));
+      row.querySelector('[data-action="plus"]').addEventListener("click", () => updateQty(id, 1));
+      row.querySelector('[data-action="minus"]').addEventListener("click", () => updateQty(id, -1));
+      row.querySelector('[data-action="remove"]').addEventListener("click", () => removeItem(id));
+    });
+
+    $("#subtotalValue").textContent = fmt(cartTotal());
+  }
+
+  /* ---------------- drawer open/close ---------------- */
+  function openCart(){
+    renderCart();
+    $("#drawer").classList.add("open");
+    $("#overlay").classList.add("open");
+    document.body.classList.add("lock");
+  }
+  function closeCart(){
+    $("#drawer").classList.remove("open");
+    if(!$("#modal").classList.contains("open")) $("#overlay").classList.remove("open");
+    document.body.classList.remove("lock");
+  }
+
+  $("#cartBtn").addEventListener("click", openCart);
+  $("#drawerClose").addEventListener("click", closeCart);
+
+  document.addEventListener("keydown", (e) => {
+    if(e.key === "Escape"){ closeModal(); closeCart(); }
+  });
+
+  /* ---------------- toast ---------------- */
+  let toastTimer;
+  function showToast(text){
+    const toast = $("#toast");
+    $("#toastText").textContent = text;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2400);
+  }
+
+  /* ---------------- WhatsApp checkout ---------------- */
+  function buildWhatsAppMessage(){
+    const lines = cart.map(item => {
+      const p = byId(item.id);
+      return `• ${p.name} x${item.qty} — ${fmt(p.price * item.qty)}`;
+    });
+    const total = fmt(cartTotal());
+    return [
+      "Hi Timber & Grain! I'd like to order:",
+      "",
+      ...lines,
+      "",
+      `Total: ${total}`,
+      "",
+      "Could you confirm availability and next steps? Thank you!"
+    ].join("\n");
+  }
+
+  function whatsappLink(message){
+    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  }
+
+  $("#checkoutBtn").addEventListener("click", () => {
+    if(cart.length === 0) return;
+    window.open(whatsappLink(buildWhatsAppMessage()), "_blank", "noopener");
+  });
+
+  $("#footerWhatsapp").addEventListener("click", (e) => {
+    e.preventDefault();
+    const msg = "Hi Timber & Grain! I have a question about a custom order.";
+    window.open(whatsappLink(msg), "_blank", "noopener");
+  });
+
+  /* ---------------- init ---------------- */
+  renderProducts();
+  renderCart();
+  window.addEventListener("load", () => document.body.classList.add("loaded"));
+  setTimeout(() => document.body.classList.add("loaded"), 300);
+})();
+</script>
+</body>
+</html>
