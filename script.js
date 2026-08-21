@@ -86,21 +86,71 @@
       id: "grain-coasters",
       category: "coasters",
       name: "Arc Wave Coaster Set",
-      tagline: "Four coasters, cut from the same radiating line.",
+      tagline: "The radiating-arc pattern.",
       price: 950,
       material: "Set of 4 · Engineered wood · Natural finish",
-      desc: "A single arc, repeated outward until it fills the circle — cut clean through so every coaster catches the light a little differently depending on what's underneath it. Understated, geometric, and satisfying to stack.",
+      desc: "Cut from the same board, this coaster is part of our line of laser-cut wood trivets — deep, clean-through geometry that catches the light a little differently depending on what's underneath it. Sold as a set of four, all in this pattern.",
       icon: "ico-coasters", accent: "terracotta", image: "images/GrainCoasterSet1.jpg"
     },
     {
-      id: "tree-of-life-coasters",
+      id: "starburst-mandala-coasters",
       category: "coasters",
-      name: "Tree of Life Coaster Set",
-      tagline: "Five trees, no two alike.",
-      price: 1150,
-      material: "Set of 5 · Solid oak · Fine detail cutting",
-      desc: "Each coaster in this set carries its own version of the same tree — bare branches, full leaves, a scatter of hearts — cut deep enough to hold real texture under your fingers. Sold as a set so the whole grove stays together.",
-      icon: "ico-coasters", accent: "sage", image: "images/GrainCoasterSet2.jpg"
+      name: "Starburst Mandala Coaster Set",
+      tagline: "The layered star-mandala pattern.",
+      price: 950,
+      material: "Set of 4 · Engineered wood · Natural finish",
+      desc: "Cut from the same board, this coaster is part of our line of laser-cut wood trivets — deep, clean-through geometry that catches the light a little differently depending on what's underneath it. Sold as a set of four, all in this pattern.",
+      icon: "ico-coasters", accent: "gold", image: "images/GrainCoasterSet2.png"
+    },
+    {
+      id: "windswept-leaf-coasters",
+      category: "coasters",
+      name: "Windswept Leaf Coaster Set",
+      tagline: "The branching leaf pattern.",
+      price: 950,
+      material: "Set of 4 · Engineered wood · Natural finish",
+      desc: "Cut from the same board, this coaster is part of our line of laser-cut wood trivets — deep, clean-through geometry that catches the light a little differently depending on what's underneath it. Sold as a set of four, all in this pattern.",
+      icon: "ico-coasters", accent: "sage", image: "images/GrainCoasterSet3.png"
+    },
+    {
+      id: "ocean-wave-coasters",
+      category: "coasters",
+      name: "Ocean Wave Coaster Set",
+      tagline: "The rolling wave pattern.",
+      price: 950,
+      material: "Set of 4 · Engineered wood · Natural finish",
+      desc: "Cut from the same board, this coaster is part of our line of laser-cut wood trivets — deep, clean-through geometry that catches the light a little differently depending on what's underneath it. Sold as a set of four, all in this pattern.",
+      icon: "ico-coasters", accent: "walnut", image: "images/GrainCoasterSet4.png"
+    },
+    {
+      id: "voronoi-stone-coasters",
+      category: "coasters",
+      name: "Voronoi Stone Coaster Set",
+      tagline: "The cracked-stone cell pattern.",
+      price: 950,
+      material: "Set of 4 · Engineered wood · Natural finish",
+      desc: "Cut from the same board, this coaster is part of our line of laser-cut wood trivets — deep, clean-through geometry that catches the light a little differently depending on what's underneath it. Sold as a set of four, all in this pattern.",
+      icon: "ico-coasters", accent: "terracotta", image: "images/GrainCoasterSet5.png"
+    },
+    {
+      id: "radiant-arc-coasters",
+      category: "coasters",
+      name: "Radiant Arc Coaster Set",
+      tagline: "The single-swirl arc pattern.",
+      price: 950,
+      material: "Set of 4 · Engineered wood · Natural finish",
+      desc: "Cut from the same board, this coaster is part of our line of laser-cut wood trivets — deep, clean-through geometry that catches the light a little differently depending on what's underneath it. Sold as a set of four, all in this pattern.",
+      icon: "ico-coasters", accent: "gold", image: "images/GrainCoasterSet6.png"
+    },
+    {
+      id: "dahlia-bloom-coasters",
+      category: "coasters",
+      name: "Dahlia Bloom Coaster Set",
+      tagline: "The layered flower pattern.",
+      price: 950,
+      material: "Set of 4 · Engineered wood · Natural finish",
+      desc: "Cut from the same board, this coaster is part of our line of laser-cut wood trivets — deep, clean-through geometry that catches the light a little differently depending on what's underneath it. Sold as a set of four, all in this pattern.",
+      icon: "ico-coasters", accent: "sage", image: "images/GrainCoasterSet7.png"
     },
     {
       id: "slotted-phone-stand",
@@ -331,8 +381,10 @@
     $("#variantsList").innerHTML = siblings.map(p => `
       <button class="variant-chip" data-id="${p.id}" type="button">
         <span class="product-image variant-thumb" data-img></span>
-        <span class="variant-name">${p.name}</span>
-        <span class="variant-price">${fmt(p.price)}</span>
+        <span class="variant-info">
+          <span class="variant-name">${p.name}</span>
+          <span class="variant-price">${fmt(p.price)}</span>
+        </span>
       </button>
     `).join("");
 

@@ -285,7 +285,7 @@ section.shop{ padding:var(--sp-3xl) 0; }
   width:min(880px, 92vw); max-height:88vh; overflow:auto;
   background:var(--cream-2); border-radius:var(--radius-l); box-shadow:var(--shadow-l);
   transition:opacity .35s var(--ease), transform .35s var(--ease);
-  display:grid; grid-template-columns:1.618fr 1fr;
+  display:grid; grid-template-columns:minmax(0,1.618fr) minmax(0,1fr);
 }
 .modal.open{ opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
 .modal-image{ position:relative; }
@@ -330,15 +330,24 @@ section.shop{ padding:var(--sp-3xl) 0; }
   font-size:var(--fs-micro); font-weight:600; letter-spacing:.06em; text-transform:uppercase;
   color:var(--charcoal-60); margin-bottom:var(--sp-md);
 }
-.variants-list{ display:flex; flex-wrap:wrap; gap:var(--sp-md); }
-.variant-chip{
-  display:flex; flex-direction:column; align-items:flex-start; gap:var(--sp-xs);
-  width:88px; padding:0; border:none; background:none; cursor:pointer; text-align:left;
+.variants-list{
+  display:flex; flex-direction:column; gap:var(--sp-sm);
+  max-height:152px; overflow-y:auto; padding-right:var(--sp-xs);
 }
-.variant-thumb{ width:100%; aspect-ratio:1/1; border-radius:10px; overflow:hidden; display:block; transition:transform .3s var(--ease); }
+.variant-chip{
+  display:flex; flex-direction:row; align-items:center; gap:var(--sp-md);
+  width:100%; padding:var(--sp-xs); border-radius:10px;
+  border:none; background:none; cursor:pointer; text-align:left;
+  transition:background .2s var(--ease);
+}
+.variant-chip:hover{ background:rgba(43,38,33,.05); }
+.variant-thumb{ width:52px; height:52px; flex:none; aspect-ratio:1/1; border-radius:10px; overflow:hidden; display:block; }
 .variant-thumb .ico{ width:44%; }
-.variant-chip:hover .variant-thumb{ transform:translateY(-3px); }
-.variant-name{ font-size:var(--fs-micro); font-weight:600; line-height:1.3; color:var(--charcoal); }
+.variant-info{ display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; }
+.variant-name{
+  font-size:var(--fs-small); font-weight:600; line-height:1.3; color:var(--charcoal);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 .variant-chip:hover .variant-name{ text-decoration:underline; }
 .variant-price{ font-size:var(--fs-micro); color:var(--walnut); font-weight:600; }
 
@@ -436,10 +445,9 @@ footer .contact a:hover{ text-decoration:underline; }
   .hero{ padding:var(--sp-3xl) var(--sp-lg) var(--sp-2xl); }
   section.shop{ padding:var(--sp-2xl) 0 var(--sp-3xl); }
   .search-wrap{ max-width:none; }
-  .modal{ grid-template-columns:1fr; width:94vw; max-height:92vh; }
+  .modal{ grid-template-columns:minmax(0,1fr); width:94vw; max-height:92vh; }
   .modal-image .product-image{ aspect-ratio:1/1; }
   .modal-info{ padding:var(--sp-lg) var(--sp-lg) var(--sp-xl); }
-  .variant-chip{ width:78px; }
   .drawer{ width:100vw; }
   .float-stack{ right:16px; bottom:16px; gap:var(--sp-md); }
   .float-whatsapp{ width:48px; height:48px; }
