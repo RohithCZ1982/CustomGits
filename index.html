@@ -157,17 +157,24 @@
 <div class="drawer" id="drawer" role="dialog" aria-label="Shopping cart">
   <div class="drawer-head">
     <h3>Your Cart</h3>
-    <button class="icon-btn" id="drawerClose" aria-label="Close cart"><svg><use href="#ico-close"/></svg></button>
+    <div class="drawer-head-actions">
+      <button class="clear-cart" id="clearCartBtn" type="button" hidden>Clear all</button>
+      <button class="icon-btn" id="drawerClose" aria-label="Close cart"><svg><use href="#ico-close"/></svg></button>
+    </div>
   </div>
   <div class="drawer-items" id="drawerItems"></div>
   <div class="drawer-foot" id="drawerFoot">
     <div class="subtotal-row"><span>Subtotal</span><span id="subtotalValue">$0</span></div>
     <button class="btn btn-whatsapp" id="checkoutBtn">Buy via WhatsApp</button>
-    <p class="drawer-note" id="drawerNote">You&apos;ll review everything in WhatsApp before it&apos;s final.</p>
+    <p class="drawer-note">You&apos;ll review everything in WhatsApp before it&apos;s final.</p>
   </div>
 </div>
 
-<div class="toast" id="toast"><svg><use href="#ico-check"/></svg><span id="toastText">Added to cart</span></div>
+<div class="toast" id="toast">
+  <svg><use href="#ico-check"/></svg>
+  <span id="toastText">Added to cart</span>
+  <button class="toast-action" id="toastAction" type="button" hidden>Undo</button>
+</div>
 
 <!-- Floating actions -->
 <div class="float-stack">

@@ -222,7 +222,7 @@
   const CATEGORIES = buildCategories();
 
   /* ---------------- state ---------------- */
-  let cart = [];        // [{id, qty}]
+  let cart = [];        // [{id, qty}] — restored from storage during init
   let activeProduct = null;
   let modalQty = 1;
   let lastQuery = "";
@@ -413,25 +413,96 @@
     showToast(`Added ${activeProduct.name} to your cart`);
   });
 
+  /* ============================================================
+     CART PERSISTENCE
+
+     The cart survives a refresh (and a return visit) via
+     localStorage. Storage is treated as untrusted: it may hold a
+     cart written by an older build whose products have since been
+     renamed or removed, so every entry is re-validated against
+     PRODUCTS on the way in. Anything that no longer resolves is
+     dropped rather than left to break the subtotal.
+     ============================================================ */
+  const CART_STORAGE_KEY = "timber-grain.cart.v1";
+  const MAX_QTY = 20;   // matches the modal's quantity ceiling
+
+  function loadCart(){
+    let raw;
+    try{
+      raw = window.localStorage.getItem(CART_STORAGE_KEY);
+    }catch(err){
+      return [];        // storage blocked (private mode, cookies off)
+    }
+    if(!raw) return [];
+
+    let parsed;
+    try{
+      parsed = JSON.parse(raw);
+    }catch(err){
+      return [];
+    }
+    if(!Array.isArray(parsed)) return [];
+
+    const restored = [];
+    parsed.forEach(entry => {
+      if(!entry || typeof entry.id !== "string") return;
+      if(!byId(entry.id)) return;                       // product no longer sold
+      if(restored.some(i => i.id === entry.id)) return; // duplicate line
+      const qty = Math.floor(Number(entry.qty));
+      if(!isFinite(qty) || qty < 1) return;
+      restored.push({ id: entry.id, qty: Math.min(qty, MAX_QTY) });
+    });
+    return restored;
+  }
+
+  function saveCart(){
+    try{
+      window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    }catch(err){
+      /* storage full or blocked — the cart still works for this visit */
+    }
+  }
+
+  /* Every cart mutation goes through here, so nothing can change the
+     cart without it being written to storage and redrawn. */
+  function commitCart(){
+    saveCart();
+    renderCart();
+  }
+
   /* ---------------- cart logic ---------------- */
   function addToCart(id, qty){
     const existing = cart.find(i => i.id === id);
-    if(existing){ existing.qty += qty; } else { cart.push({ id, qty }); }
-    renderCart();
+    if(existing){ existing.qty = Math.min(MAX_QTY, existing.qty + qty); }
+    else { cart.push({ id, qty }); }
+    commitCart();
     bumpBadge();
   }
 
   function updateQty(id, delta){
     const item = cart.find(i => i.id === id);
     if(!item) return;
-    item.qty += delta;
+    item.qty = Math.min(MAX_QTY, item.qty + delta);
     if(item.qty <= 0) cart = cart.filter(i => i.id !== id);
-    renderCart();
+    commitCart();
   }
 
   function removeItem(id){
     cart = cart.filter(i => i.id !== id);
-    renderCart();
+    commitCart();
+  }
+
+  /* Clearing is undoable rather than confirmed — a dialog interrupts,
+     and the snapshot costs nothing. */
+  function clearCart(){
+    if(cart.length === 0) return;
+    const snapshot = cart.map(i => ({ id: i.id, qty: i.qty }));
+    cart = [];
+    commitCart();
+    showToast("Cart cleared", {
+      label: "Undo",
+      run: () => { cart = snapshot; commitCart(); }
+    });
   }
 
   function cartTotal(){
@@ -456,6 +527,7 @@
 
     const itemsEl = $("#drawerItems");
     const footEl = $("#drawerFoot");
+    $("#clearCartBtn").hidden = cart.length === 0;
 
     if(cart.length === 0){
       itemsEl.innerHTML = `
@@ -514,38 +586,60 @@
 
   $("#cartBtn").addEventListener("click", openCart);
   $("#drawerClose").addEventListener("click", closeCart);
+  $("#clearCartBtn").addEventListener("click", clearCart);
 
   document.addEventListener("keydown", (e) => {
     if(e.key === "Escape"){ closeModal(); closeCart(); }
   });
 
   /* ---------------- toast ---------------- */
+  /* An optional { label, run } gives the toast a single action
+     button — used by "Clear all" to offer an undo. */
   let toastTimer;
-  function showToast(text){
+  let pendingAction = null;
+
+  function showToast(text, action){
     const toast = $("#toast");
+    const actionBtn = $("#toastAction");
+
     $("#toastText").textContent = text;
+    pendingAction = action || null;
+    actionBtn.hidden = !pendingAction;
+    if(pendingAction) actionBtn.textContent = pendingAction.label;
+
     toast.classList.add("show");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove("show"), 2400);
+    // an actionable toast lingers, so there is time to reach for it
+    toastTimer = setTimeout(hideToast, pendingAction ? 6000 : 2400);
   }
+
+  function hideToast(){
+    $("#toast").classList.remove("show");
+    pendingAction = null;
+    $("#toastAction").hidden = true;
+  }
+
+  $("#toastAction").addEventListener("click", () => {
+    if(!pendingAction) return;
+    const run = pendingAction.run;
+    clearTimeout(toastTimer);
+    hideToast();
+    run();
+  });
 
   /* ============================================================
      WHATSAPP CHECKOUT
 
-     The order goes out with a small photo of every piece in the
-     cart. Two paths, best first:
+     The order always opens a chat with WHATSAPP_NUMBER above — no
+     contact picker, no app chooser.
 
-       1) Web Share (phones): the photos are attached as real
-          image files next to the order text, so the studio sees
-          exactly which designs were picked.
-       2) wa.me link (desktop, or anywhere file sharing isn't
-          available): a wa.me URL can only carry text, so the
-          same order goes out with a link to each piece's photo
-          instead — WhatsApp previews the first one.
+     That rules out attaching the photos as real image files: the
+     only browser API that can attach files is the OS share sheet
+     (navigator.share), and a share sheet always asks the shopper to
+     choose an app and a recipient. It cannot be pre-addressed. So
+     the photos travel as links instead — one per line item, which
+     WhatsApp expands into a preview.
      ============================================================ */
-  const PHOTO_MAX_EDGE = 480;   // px on the longest edge of an attached photo
-  const PHOTO_QUALITY  = 0.75;  // JPEG quality for attached photos
-  const PHOTO_MAX_FILES = 10;   // beyond this the share sheet gets unwieldy
 
   /* Product images are stored as relative paths; WhatsApp needs absolute ones. */
   function absoluteImageURL(product){
@@ -558,76 +652,13 @@
     }
   }
 
-  function loadImage(src){
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("Could not load " + src));
-      img.src = src;
-    });
-  }
-
-  function canvasToBlob(canvas){
-    return new Promise((resolve) => {
-      try{
-        canvas.toBlob(resolve, "image/jpeg", PHOTO_QUALITY);
-      }catch(err){
-        resolve(null);   // tainted canvas — e.g. the page opened straight from disk
-      }
-    });
-  }
-
-  /* Downscales a product photo into a small JPEG ready to attach. */
-  async function photoFor(product){
-    const src = absoluteImageURL(product);
-    if(!src) return null;
-    try{
-      const img = await loadImage(src);
-      const w = img.naturalWidth || img.width;
-      const h = img.naturalHeight || img.height;
-      if(!w || !h) return null;
-
-      const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(w, h));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(w * scale));
-      canvas.height = Math.max(1, Math.round(h * scale));
-
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#ffffff";                 // JPEG has no alpha
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      const blob = await canvasToBlob(canvas);
-      if(!blob) return null;
-      return new File([blob], product.id + ".jpg", { type: "image/jpeg" });
-    }catch(err){
-      return null;
-    }
-  }
-
-  /* Synchronous capability probe — kept sync so the fallback window.open()
-     still runs inside the click and isn't treated as a popup. */
-  function canSharePhotos(){
-    if(window.location.protocol === "file:") return false;
-    if(!navigator.share || !navigator.canShare || typeof window.File !== "function") return false;
-    try{
-      const probe = new File([new Blob([], { type: "image/jpeg" })], "probe.jpg", { type: "image/jpeg" });
-      return navigator.canShare({ files: [probe] });
-    }catch(err){
-      return false;
-    }
-  }
-
-  function buildWhatsAppMessage(withPhotoLinks){
+  function buildWhatsAppMessage(){
     const lines = [];
     cart.forEach(item => {
       const p = byId(item.id);
       lines.push(`• ${p.name} x${item.qty} — ${fmt(p.price * item.qty)}`);
-      if(withPhotoLinks){
-        const photo = absoluteImageURL(p);
-        if(photo) lines.push(`  ${photo}`);
-      }
+      const photo = absoluteImageURL(p);
+      if(photo) lines.push(`  ${photo}`);
     });
     const total = fmt(cartTotal());
     return [
@@ -648,51 +679,17 @@
   function openWhatsApp(message){
     const link = whatsappLink(message);
     const win = window.open(link, "_blank", "noopener");
-    if(!win) window.location.href = link;
+    if(!win) window.location.href = link;   // popup blocked — go directly
   }
 
-  /* Resolves true once the order (text + photos) has been handed to the
-     share sheet, false if there was nothing shareable to hand over. */
-  async function shareCartWithPhotos(){
-    const files = (await Promise.all(
-      cart.slice(0, PHOTO_MAX_FILES).map(item => photoFor(byId(item.id)))
-    )).filter(Boolean);
-
-    if(files.length === 0 || !navigator.canShare({ files })) return false;
-    await navigator.share({ text: buildWhatsAppMessage(false), files });
-    return true;
-  }
-
-  const checkoutBtn = $("#checkoutBtn");
-
-  checkoutBtn.addEventListener("click", () => {
+  $("#checkoutBtn").addEventListener("click", () => {
     if(cart.length === 0) return;
-
-    if(!canSharePhotos()){
-      openWhatsApp(buildWhatsAppMessage(true));
-      return;
-    }
-
-    const label = checkoutBtn.textContent;
-    checkoutBtn.disabled = true;
-    checkoutBtn.textContent = "Preparing photos…";
-
-    shareCartWithPhotos()
-      .then(shared => { if(!shared) openWhatsApp(buildWhatsAppMessage(true)); })
-      .catch(err => {
-        // The share sheet being dismissed is a choice, not a failure.
-        if(!err || err.name !== "AbortError") openWhatsApp(buildWhatsAppMessage(true));
-      })
-      .finally(() => {
-        checkoutBtn.disabled = false;
-        checkoutBtn.textContent = label;
-      });
+    openWhatsApp(buildWhatsAppMessage());
   });
 
   $("#footerWhatsapp").addEventListener("click", (e) => {
     e.preventDefault();
-    const msg = "Hi Timber & Grain! I have a question about a custom order.";
-    openWhatsApp(msg);
+    openWhatsApp("Hi Timber & Grain! I have a question about a custom order.");
   });
 
   /* ---------------- floating actions ---------------- */
@@ -713,11 +710,8 @@
 
   /* ---------------- init ---------------- */
   renderCategoryCards();
+  cart = loadCart();
   renderCart();
-  if(canSharePhotos()){
-    $("#drawerNote").textContent =
-      "We'll attach a photo of each piece — you'll review everything in WhatsApp before it's final.";
-  }
   updateScrollTopVisibility();
   window.addEventListener("load", () => document.body.classList.add("loaded"));
   setTimeout(() => document.body.classList.add("loaded"), 300);
