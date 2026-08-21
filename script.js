@@ -222,7 +222,7 @@
   const CATEGORIES = buildCategories();
 
   /* ---------------- state ---------------- */
-  let cart = [];        // [{id, qty}]
+  let cart = [];        // [{id, qty}] — restored from storage during init
   let activeProduct = null;
   let modalQty = 1;
   let lastQuery = "";
@@ -413,25 +413,96 @@
     showToast(`Added ${activeProduct.name} to your cart`);
   });
 
+  /* ============================================================
+     CART PERSISTENCE
+
+     The cart survives a refresh (and a return visit) via
+     localStorage. Storage is treated as untrusted: it may hold a
+     cart written by an older build whose products have since been
+     renamed or removed, so every entry is re-validated against
+     PRODUCTS on the way in. Anything that no longer resolves is
+     dropped rather than left to break the subtotal.
+     ============================================================ */
+  const CART_STORAGE_KEY = "timber-grain.cart.v1";
+  const MAX_QTY = 20;   // matches the modal's quantity ceiling
+
+  function loadCart(){
+    let raw;
+    try{
+      raw = window.localStorage.getItem(CART_STORAGE_KEY);
+    }catch(err){
+      return [];        // storage blocked (private mode, cookies off)
+    }
+    if(!raw) return [];
+
+    let parsed;
+    try{
+      parsed = JSON.parse(raw);
+    }catch(err){
+      return [];
+    }
+    if(!Array.isArray(parsed)) return [];
+
+    const restored = [];
+    parsed.forEach(entry => {
+      if(!entry || typeof entry.id !== "string") return;
+      if(!byId(entry.id)) return;                       // product no longer sold
+      if(restored.some(i => i.id === entry.id)) return; // duplicate line
+      const qty = Math.floor(Number(entry.qty));
+      if(!isFinite(qty) || qty < 1) return;
+      restored.push({ id: entry.id, qty: Math.min(qty, MAX_QTY) });
+    });
+    return restored;
+  }
+
+  function saveCart(){
+    try{
+      window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    }catch(err){
+      /* storage full or blocked — the cart still works for this visit */
+    }
+  }
+
+  /* Every cart mutation goes through here, so nothing can change the
+     cart without it being written to storage and redrawn. */
+  function commitCart(){
+    saveCart();
+    renderCart();
+  }
+
   /* ---------------- cart logic ---------------- */
   function addToCart(id, qty){
     const existing = cart.find(i => i.id === id);
-    if(existing){ existing.qty += qty; } else { cart.push({ id, qty }); }
-    renderCart();
+    if(existing){ existing.qty = Math.min(MAX_QTY, existing.qty + qty); }
+    else { cart.push({ id, qty }); }
+    commitCart();
     bumpBadge();
   }
 
   function updateQty(id, delta){
     const item = cart.find(i => i.id === id);
     if(!item) return;
-    item.qty += delta;
+    item.qty = Math.min(MAX_QTY, item.qty + delta);
     if(item.qty <= 0) cart = cart.filter(i => i.id !== id);
-    renderCart();
+    commitCart();
   }
 
   function removeItem(id){
     cart = cart.filter(i => i.id !== id);
-    renderCart();
+    commitCart();
+  }
+
+  /* Clearing is undoable rather than confirmed — a dialog interrupts,
+     and the snapshot costs nothing. */
+  function clearCart(){
+    if(cart.length === 0) return;
+    const snapshot = cart.map(i => ({ id: i.id, qty: i.qty }));
+    cart = [];
+    commitCart();
+    showToast("Cart cleared", {
+      label: "Undo",
+      run: () => { cart = snapshot; commitCart(); }
+    });
   }
 
   function cartTotal(){
@@ -456,6 +527,7 @@
 
     const itemsEl = $("#drawerItems");
     const footEl = $("#drawerFoot");
+    $("#clearCartBtn").hidden = cart.length === 0;
 
     if(cart.length === 0){
       itemsEl.innerHTML = `
@@ -514,20 +586,46 @@
 
   $("#cartBtn").addEventListener("click", openCart);
   $("#drawerClose").addEventListener("click", closeCart);
+  $("#clearCartBtn").addEventListener("click", clearCart);
 
   document.addEventListener("keydown", (e) => {
     if(e.key === "Escape"){ closeModal(); closeCart(); }
   });
 
   /* ---------------- toast ---------------- */
+  /* An optional { label, run } gives the toast a single action
+     button — used by "Clear all" to offer an undo. */
   let toastTimer;
-  function showToast(text){
+  let pendingAction = null;
+
+  function showToast(text, action){
     const toast = $("#toast");
+    const actionBtn = $("#toastAction");
+
     $("#toastText").textContent = text;
+    pendingAction = action || null;
+    actionBtn.hidden = !pendingAction;
+    if(pendingAction) actionBtn.textContent = pendingAction.label;
+
     toast.classList.add("show");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove("show"), 2400);
+    // an actionable toast lingers, so there is time to reach for it
+    toastTimer = setTimeout(hideToast, pendingAction ? 6000 : 2400);
   }
+
+  function hideToast(){
+    $("#toast").classList.remove("show");
+    pendingAction = null;
+    $("#toastAction").hidden = true;
+  }
+
+  $("#toastAction").addEventListener("click", () => {
+    if(!pendingAction) return;
+    const run = pendingAction.run;
+    clearTimeout(toastTimer);
+    hideToast();
+    run();
+  });
 
   /* ============================================================
      WHATSAPP CHECKOUT
@@ -612,6 +710,7 @@
 
   /* ---------------- init ---------------- */
   renderCategoryCards();
+  cart = loadCart();
   renderCart();
   updateScrollTopVisibility();
   window.addEventListener("load", () => document.body.classList.add("loaded"));
