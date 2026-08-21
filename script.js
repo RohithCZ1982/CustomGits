@@ -500,9 +500,26 @@
     window.open(whatsappLink(msg), "_blank", "noopener");
   });
 
+  /* ---------------- floating actions ---------------- */
+  $("#whatsappFloat").addEventListener("click", (e) => {
+    e.preventDefault();
+    const msg = "Hi Timber & Grain! I'd like to know more about your pieces.";
+    window.open(whatsappLink(msg), "_blank", "noopener");
+  });
+
+  const scrollTopBtn = $("#scrollTopBtn");
+  function updateScrollTopVisibility(){
+    scrollTopBtn.classList.toggle("show", window.scrollY > 480);
+  }
+  window.addEventListener("scroll", updateScrollTopVisibility, { passive: true });
+  scrollTopBtn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
   /* ---------------- init ---------------- */
   renderCategoryCards();
   renderCart();
+  updateScrollTopVisibility();
   window.addEventListener("load", () => document.body.classList.add("loaded"));
   setTimeout(() => document.body.classList.add("loaded"), 300);
 })();
