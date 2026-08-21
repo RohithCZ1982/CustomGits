@@ -6,7 +6,7 @@
      Digits only, international format, no + or spaces.
      Example: "14155552671" for +1 (415) 555-2671
      ============================================================ */
-  const WHATSAPP_NUMBER = "10000000000";
+  const WHATSAPP_NUMBER = "9449767270";
   const CURRENCY = "₹";
 
   /* ============================================================
@@ -126,11 +126,21 @@
       id: "study-organizer",
       category: "desk",
       name: "The Study Organizer",
-      tagline: "A tidy desk starts with good joinery.",
-      price: 1650,
-      material: "White oak · Three compartments · Felt-lined base",
-      desc: "Pens, cards, the day's loose ends — the Study Organizer gives each its own compartment, cut and dry-fit by hand so every joint sits flush without a drop of visible glue.",
-      icon: "ico-organizer", accent: "walnut", image: null
+      tagline: "A whole desk, tidied into one tray.",
+      price: 3200,
+      material: "Solid maple · Phone stand, pen cups, mouse tray, notepad & catch-all slots",
+      desc: "One flat tray cut to hold everything that usually ends up loose — a slot for the phone, a bay for pens, a cutout sized to the mouse, room for a notepad and the day's sticky notes. Every compartment is dry-fit by hand, so nothing rattles.",
+      icon: "ico-organizer", accent: "walnut", image: "images/DeskOrganiser1.jpg"
+    },
+    {
+      id: "craft-log-organizer",
+      category: "desk",
+      name: "Craft Log Desk Organizer",
+      tagline: "For the desk where the ideas happen.",
+      price: 3400,
+      material: "Solid maple · Engraved nameplate · Notepad stand, phone stand, mouse tray, hardware trays",
+      desc: "Built for a working desk — a stand for the notepad you actually write in, trays for loose screws and paperclips, and a nameplate strip you can have engraved with whatever this desk is for. Cut from the same tray as the Study Organizer, laid out for someone who makes things.",
+      icon: "ico-organizer", accent: "gold", image: "images/DeskOrganiser2.jpg"
     },
     {
       id: "wave-relief-panel",
