@@ -532,20 +532,16 @@
   /* ============================================================
      WHATSAPP CHECKOUT
 
-     The order goes out with a small photo of every piece in the
-     cart. Two paths, best first:
+     The order always opens a chat with WHATSAPP_NUMBER above — no
+     contact picker, no app chooser.
 
-       1) Web Share (phones): the photos are attached as real
-          image files next to the order text, so the studio sees
-          exactly which designs were picked.
-       2) wa.me link (desktop, or anywhere file sharing isn't
-          available): a wa.me URL can only carry text, so the
-          same order goes out with a link to each piece's photo
-          instead — WhatsApp previews the first one.
+     That rules out attaching the photos as real image files: the
+     only browser API that can attach files is the OS share sheet
+     (navigator.share), and a share sheet always asks the shopper to
+     choose an app and a recipient. It cannot be pre-addressed. So
+     the photos travel as links instead — one per line item, which
+     WhatsApp expands into a preview.
      ============================================================ */
-  const PHOTO_MAX_EDGE = 480;   // px on the longest edge of an attached photo
-  const PHOTO_QUALITY  = 0.75;  // JPEG quality for attached photos
-  const PHOTO_MAX_FILES = 10;   // beyond this the share sheet gets unwieldy
 
   /* Product images are stored as relative paths; WhatsApp needs absolute ones. */
   function absoluteImageURL(product){
@@ -558,76 +554,13 @@
     }
   }
 
-  function loadImage(src){
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("Could not load " + src));
-      img.src = src;
-    });
-  }
-
-  function canvasToBlob(canvas){
-    return new Promise((resolve) => {
-      try{
-        canvas.toBlob(resolve, "image/jpeg", PHOTO_QUALITY);
-      }catch(err){
-        resolve(null);   // tainted canvas — e.g. the page opened straight from disk
-      }
-    });
-  }
-
-  /* Downscales a product photo into a small JPEG ready to attach. */
-  async function photoFor(product){
-    const src = absoluteImageURL(product);
-    if(!src) return null;
-    try{
-      const img = await loadImage(src);
-      const w = img.naturalWidth || img.width;
-      const h = img.naturalHeight || img.height;
-      if(!w || !h) return null;
-
-      const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(w, h));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(w * scale));
-      canvas.height = Math.max(1, Math.round(h * scale));
-
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#ffffff";                 // JPEG has no alpha
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      const blob = await canvasToBlob(canvas);
-      if(!blob) return null;
-      return new File([blob], product.id + ".jpg", { type: "image/jpeg" });
-    }catch(err){
-      return null;
-    }
-  }
-
-  /* Synchronous capability probe — kept sync so the fallback window.open()
-     still runs inside the click and isn't treated as a popup. */
-  function canSharePhotos(){
-    if(window.location.protocol === "file:") return false;
-    if(!navigator.share || !navigator.canShare || typeof window.File !== "function") return false;
-    try{
-      const probe = new File([new Blob([], { type: "image/jpeg" })], "probe.jpg", { type: "image/jpeg" });
-      return navigator.canShare({ files: [probe] });
-    }catch(err){
-      return false;
-    }
-  }
-
-  function buildWhatsAppMessage(withPhotoLinks){
+  function buildWhatsAppMessage(){
     const lines = [];
     cart.forEach(item => {
       const p = byId(item.id);
       lines.push(`• ${p.name} x${item.qty} — ${fmt(p.price * item.qty)}`);
-      if(withPhotoLinks){
-        const photo = absoluteImageURL(p);
-        if(photo) lines.push(`  ${photo}`);
-      }
+      const photo = absoluteImageURL(p);
+      if(photo) lines.push(`  ${photo}`);
     });
     const total = fmt(cartTotal());
     return [
@@ -648,51 +581,17 @@
   function openWhatsApp(message){
     const link = whatsappLink(message);
     const win = window.open(link, "_blank", "noopener");
-    if(!win) window.location.href = link;
+    if(!win) window.location.href = link;   // popup blocked — go directly
   }
 
-  /* Resolves true once the order (text + photos) has been handed to the
-     share sheet, false if there was nothing shareable to hand over. */
-  async function shareCartWithPhotos(){
-    const files = (await Promise.all(
-      cart.slice(0, PHOTO_MAX_FILES).map(item => photoFor(byId(item.id)))
-    )).filter(Boolean);
-
-    if(files.length === 0 || !navigator.canShare({ files })) return false;
-    await navigator.share({ text: buildWhatsAppMessage(false), files });
-    return true;
-  }
-
-  const checkoutBtn = $("#checkoutBtn");
-
-  checkoutBtn.addEventListener("click", () => {
+  $("#checkoutBtn").addEventListener("click", () => {
     if(cart.length === 0) return;
-
-    if(!canSharePhotos()){
-      openWhatsApp(buildWhatsAppMessage(true));
-      return;
-    }
-
-    const label = checkoutBtn.textContent;
-    checkoutBtn.disabled = true;
-    checkoutBtn.textContent = "Preparing photos…";
-
-    shareCartWithPhotos()
-      .then(shared => { if(!shared) openWhatsApp(buildWhatsAppMessage(true)); })
-      .catch(err => {
-        // The share sheet being dismissed is a choice, not a failure.
-        if(!err || err.name !== "AbortError") openWhatsApp(buildWhatsAppMessage(true));
-      })
-      .finally(() => {
-        checkoutBtn.disabled = false;
-        checkoutBtn.textContent = label;
-      });
+    openWhatsApp(buildWhatsAppMessage());
   });
 
   $("#footerWhatsapp").addEventListener("click", (e) => {
     e.preventDefault();
-    const msg = "Hi Timber & Grain! I have a question about a custom order.";
-    openWhatsApp(msg);
+    openWhatsApp("Hi Timber & Grain! I have a question about a custom order.");
   });
 
   /* ---------------- floating actions ---------------- */
@@ -714,10 +613,6 @@
   /* ---------------- init ---------------- */
   renderCategoryCards();
   renderCart();
-  if(canSharePhotos()){
-    $("#drawerNote").textContent =
-      "We'll attach a photo of each piece — you'll review everything in WhatsApp before it's final.";
-  }
   updateScrollTopVisibility();
   window.addEventListener("load", () => document.body.classList.add("loaded"));
   setTimeout(() => document.body.classList.add("loaded"), 300);
