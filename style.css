@@ -131,11 +131,15 @@ header .logo::after{
   transform:skewX(-20deg);
   mix-blend-mode:screen;
   pointer-events:none;
-  animation:logoShine 7.4s ease-in-out infinite;
+  animation:logoShine 2s linear infinite;
 }
+/* The range is kept tight: the highlight starts just off the left
+   edge and stops just past the right one. A wider range (the old
+   -160%..160%) spent most of the sweep off the wordmark, which read
+   as a long dark gap between flashes rather than as travel. */
 @keyframes logoShine{
-  0%, 13%{ left:-160%; }
-  89%, 100%{ left:160%; }
+  0%, 11%{ left:-45%; }
+  88%, 100%{ left:90%; }
 }
 .header-actions{ display:flex; align-items:center; gap:var(--sp-xs); }
 .cart-badge{
@@ -470,5 +474,6 @@ footer .contact a:hover{ text-decoration:underline; }
   .float-top{ width:40px; height:40px; }
 }
 @media (prefers-reduced-motion: reduce){
-  *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+  /* `*` alone misses pseudo-elements, which is where the logo shine lives */
+  *, *::before, *::after{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
